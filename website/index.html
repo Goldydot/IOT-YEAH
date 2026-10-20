@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IoT Weather Station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="style.css?v=9">
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+    <div class="gridlines"></div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span class="toast-icon">!</span><span id="toastText">Alarm</span>
+  </div>
+
+  <header class="top reveal" style="--i:0">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span></span></div>
+      <div>
+        <p class="eyebrow">ESP32 · Real-time monitoring</p>
+        <h1>Arcris <em> Jimenez</em></h1>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">Connecting…</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <!-- Temperature -->
+      <article class="card reveal wide" id="tempCard" style="--i:1">
+        <header class="card-h"><span class="label">Temperature</span><span class="chip" id="tempChip">--</span></header>
+        <div class="temp-layout">
+        <div class="temp-gauge">
+        <div class="gauge">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0" stop-color="#ff9a3c"/>
+                <stop offset=".55" stop-color="#ff2e4d"/>
+                <stop offset="1" stop-color="#d4003a"/>
+              </linearGradient>
+            </defs>
+            <circle class="track" cx="100" cy="100" r="80"/>
+            <circle class="arc" id="tempArc" cx="100" cy="100" r="80"/>
+          </svg>
+          <div class="gauge-center">
+            <span class="big" id="temperature">--</span><span class="unit">°C</span>
+          </div>
+        </div>
+        <div class="scale"><span>0°</span><span>25°</span><span>50°</span></div>
+        <p class="gauge-caption">Sensor reading</p>
+        </div>
+
+        <div class="temp-side">
+          <div class="where">
+            <p class="loc"><span class="fc-tag">Forecast</span><span class="pin" aria-hidden="true">📍</span><span id="locName">Finding your location…</span></p>
+            <div class="outside">
+              <span class="wx-icon" id="wxIcon" aria-hidden="true">⛅</span>
+              <div>
+                <p class="outside-temp"><span id="wxTemp">--</span><small>°C forecast</small></p>
+                <p class="outside-desc" id="wxDesc">Checking the weather…</p>
+              </div>
+            </div>
+            <p class="hilo" id="wxHiLo"></p>
+            <p class="cmp" id="tempCmp"></p>
+          </div>
+
+          <div class="calendar" aria-label="Calendar">
+            <div class="today">
+              <span class="today-day" id="todayDay">--</span>
+              <span class="today-rest"><b id="todayWeekday">--</b><span id="todayMonthYear">--</span></span>
+            </div>
+            <div class="cal-head">
+              <button class="cal-nav" id="calPrev" aria-label="Previous month">‹</button>
+              <b id="calTitle">--</b>
+              <button class="cal-nav" id="calNext" aria-label="Next month">›</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+        </div>
+      </article>
+
+      <!-- Humidity -->
+      <article class="card reveal" id="humCard" style="--i:2">
+        <header class="card-h"><span class="label">Humidity</span><span class="chip" id="humChip">--</span></header>
+        <div class="liquid">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <defs>
+              <clipPath id="liquidClip"><circle cx="100" cy="100" r="84"/></clipPath>
+              <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ff4d6a"/>
+                <stop offset="1" stop-color="#7a0b20"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring" cx="100" cy="100" r="93"/>
+            <circle class="inner" cx="100" cy="100" r="84"/>
+            <g clip-path="url(#liquidClip)">
+              <g class="water-level" id="waterLevel" style="transform: translateY(176px)">
+                <path class="wave w2" d="M0,10 Q25,0 50,10 T100,10 T150,10 T200,10 T250,10 T300,10 T350,10 T400,10 V220 H0 Z"/>
+                <path class="wave w1" d="M0,10 Q25,0 50,10 T100,10 T150,10 T200,10 T250,10 T300,10 T350,10 T400,10 V220 H0 Z"/>
+              </g>
+            </g>
+          </svg>
+          <div class="liquid-center">
+            <span class="big" id="humidity">--</span><span class="unit">%</span>
+          </div>
+        </div>
+        <div class="hum-info">
+          <p class="hum-type"><span id="humIcon" aria-hidden="true">💧</span><span id="humType">--</span></p>
+          <p class="hum-desc" id="humDesc">Waiting for the sensor…</p>
+          <ul class="hum-stats">
+            <li><span>Dew point</span><b id="dewPoint">--</b></li>
+            <li><span>Feels like</span><b id="heatIndex">--</b></li>
+            <li><span>Fog / mist</span><b id="fogState">--</b></li>
+            <li><span>Smoke / haze <small>outside</small></span><b id="smokeState">--</b></li>
+            <li class="wide-stat"><span>Sensor vs forecast</span><b id="humCmp">--</b></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Distance -->
+      <article class="card reveal" id="distCard" style="--i:3">
+        <header class="card-h"><span class="label">Distance</span><span class="chip" id="distanceBadge">--</span></header>
+        <div class="radar" aria-hidden="true">
+          <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+          <div class="sweep"></div>
+          <div class="blip" id="blip" hidden></div>
+          <div class="core"></div>
+        </div>
+        <div class="readout"><span class="big" id="distance">--</span><span class="unit">cm</span></div>
+      </article>
+
+      <!-- Rain -->
+      <article class="card reveal" id="rainCard" style="--i:4">
+        <header class="card-h"><span class="label">Rain</span><span class="chip" id="rainBadge">--</span></header>
+        <div class="scene rain-scene" aria-hidden="true">
+          <svg class="cloud" viewBox="0 0 120 80">
+            <path d="M30 66 a18 18 0 0 1 1-36 a26 26 0 0 1 50 4 a16 16 0 0 1 9 32 z"/>
+          </svg>
+          <div class="drops" id="drops"></div>
+          <div class="puddle"></div>
+          <div class="mist"></div>
+          <div class="flash"></div>
+        </div>
+        <p class="state" id="rain">--</p>
+        <div class="rain-info">
+          <p class="rain-type"><span class="fc-tag">Forecast</span><span id="rainIcon" aria-hidden="true">🌤️</span><b id="rainType">--</b></p>
+          <p class="rain-desc" id="rainDesc">Checking the weather…</p>
+          <ul class="hum-stats">
+            <li><span>Sensor</span><b id="rainSensor">--</b></li>
+            <li><span>Forecast now</span><b id="rainAmount">--</b></li>
+            <li class="wide-stat"><span>Sensor vs forecast</span><b id="rainCmp">--</b></li>
+            <li class="wide-stat"><span>Season</span><b id="season">--</b></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Light -->
+      <article class="card reveal" id="lightCard" style="--i:5">
+        <header class="card-h"><span class="label">Light</span><span class="chip" id="lightBadge">--</span></header>
+        <div class="scene sky" aria-hidden="true">
+          <div class="stars" id="stars"></div>
+          <svg class="sun" viewBox="0 0 100 100">
+            <g class="rays">
+              <line x1="50" y1="6" x2="50" y2="18"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(45 50 50)"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(90 50 50)"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(135 50 50)"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(180 50 50)"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(225 50 50)"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(270 50 50)"/>
+              <line x1="50" y1="6" x2="50" y2="18" transform="rotate(315 50 50)"/>
+            </g>
+            <circle cx="50" cy="50" r="20"/>
+          </svg>
+          <svg class="moon" viewBox="0 0 100 100">
+            <path d="M62 22 a30 30 0 1 0 18 46 a24 24 0 1 1 -18 -46 z"/>
+          </svg>
+          <div class="sky-cloud">☁️</div>
+          <div class="bulb">💡</div>
+        </div>
+        <p class="state" id="light">--</p>
+        <div class="rain-info">
+          <p class="rain-type"><span class="fc-tag">Forecast</span><span id="lightIcon" aria-hidden="true">☀️</span><b id="lightType">--</b></p>
+          <p class="rain-desc" id="lightDesc">Checking the sky…</p>
+          <ul class="hum-stats">
+            <li><span>Sensor</span><b id="lightSensor">--</b></li>
+            <li><span>UV index</span><b id="uvIndex">--</b></li>
+            <li><span>Sunrise</span><b id="sunrise">--</b></li>
+            <li><span>Sunset</span><b id="sunset">--</b></li>
+            <li class="wide-stat"><span>Sensor vs forecast</span><b id="lightCmp">--</b></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Buzzer -->
+      <article class="card reveal full" id="buzzerCard" style="--i:6">
+        <header class="card-h"><span class="label">Buzzer</span><span class="chip" id="buzzerChip">--</span></header>
+        <div class="buzz-layout">
+        <div class="buzz-left">
+        <div class="scene speaker" aria-hidden="true">
+          <svg viewBox="0 0 120 100">
+            <path class="spk" d="M14 38 h18 l24 -20 v64 l-24 -20 h-18 z"/>
+            <path class="sw s1" d="M68 36 q10 14 0 28"/>
+            <path class="sw s2" d="M80 26 q18 24 0 48"/>
+            <path class="sw s3" d="M92 16 q26 34 0 68"/>
+          </svg>
+        </div>
+        <p class="state"><span id="buzzer">--</span> <span class="reason" id="buzzerReason"></span></p>
+        </div>
+        <div class="buzz-right">
+        <div class="segmented" id="buzzerMode" role="group" aria-label="Buzzer mode">
+          <span class="pill" id="modePill"></span>
+          <button data-mode="auto">Auto</button>
+          <button data-mode="on">On</button>
+          <button data-mode="off">Off</button>
+        </div>
+        <button class="clap-btn" id="clapBtn" aria-pressed="false">
+          <span class="clap-ico" aria-hidden="true">👏</span>
+          <span class="clap-text"><b id="clapLabel">Double clap to buzz</b><small id="clapHint">Uses this device's microphone</small></span>
+          <span class="meter" aria-hidden="true"><span id="clapMeter"></span></span>
+        </button>
+        <label class="sens">
+          <span>Sensitivity</span>
+          <input type="range" id="clapSens" min="1" max="10" step="1" value="7">
+          <b id="clapSensVal">7</b>
+        </label>
+        </div>
+        </div>
+      </article>
+    </section>
+
+    <h2 class="section-title reveal" style="--i:7">History <span>last readings · hover to inspect</span></h2>
+    <section class="charts">
+      <figure class="card chart reveal" style="--i:8" data-key="temperature" data-unit="°C" data-title="Temperature"></figure>
+      <figure class="card chart reveal" style="--i:9" data-key="humidity" data-unit="%" data-title="Humidity"></figure>
+      <figure class="card chart reveal" style="--i:10" data-key="distance" data-unit="cm" data-title="Distance"></figure>
+    </section>
+
+    <footer class="foot reveal" style="--i:11">
+      <span>Last update: <b id="updated">never</b></span>
+      <span id="transport">ESP32 → JSON → data.php → you</span>
+    </footer>
+  </main>
+
+  <!-- bump ?v= after changing style.css / app.js: Hostinger's CDN caches them for 7 days -->
+  <script src="app.js?v=9"></script>
+</body>
+</html>
